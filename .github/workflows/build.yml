@@ -9,7 +9,7 @@ on:
 jobs:
   build:
     name: ${{ matrix.name }}
-    runs-on: windows-2022
+    runs-on: windows-latest
     strategy:
       fail-fast: false
       matrix:
@@ -42,7 +42,7 @@ jobs:
 
       - name: Generate project files
         working-directory: egsm
-        run: premake5 vs2022 --gmcommon="${env:GITHUB_WORKSPACE}\garrysmod_common" ${{ matrix.premake_args }}
+        run: premake5 vs2026 --gmcommon="${env:GITHUB_WORKSPACE}\garrysmod_common" ${{ matrix.premake_args }}
 
       - name: Add MSBuild to PATH
         uses: microsoft/setup-msbuild@main
