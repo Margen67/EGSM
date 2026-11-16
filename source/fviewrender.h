@@ -10,6 +10,10 @@
 #include "view_shared.h"
 #include <networkvar.h>
 #include "replay/ireplayscreenshotsystem.h"
+// playernet_vars.h declares CNetworkHandle<C_FogController>; newer MSVC needs the type to be
+// convertible to IHandleEntity* when CNetworkHandle::Set is instantiated.
+#include <ihandleentity.h>
+class C_FogController : public IHandleEntity {};
 #include <playernet_vars.h>
 #include <cdll_int.h>
 

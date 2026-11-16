@@ -12,6 +12,23 @@ newoption({
 	value = "path to garrysmod_common directory"
 })
 
+-- premake 5.0.0 removed the legacy `flags` API (still used by garrysmod_common's generator and below).
+-- Map the flags we know about onto their replacements; unknown ones are ignored.
+if flags == nil then
+	local legacy_flags = {
+		MultiProcessorCompile = function() multiprocessorcompile("On") end,
+		NoPCH = function() enablepch("Off") end,
+	}
+
+	function flags(list)
+		if type(list) ~= "table" then list = {list} end
+		for _, name in ipairs(list) do
+			local apply = legacy_flags[name]
+			if apply then apply() end
+		end
+	end
+end
+
 local gmcommon = assert(_OPTIONS.gmcommon or os.getenv("GARRYSMOD_COMMON"),
 	"you didn't provide a path to your garrysmod_common (https://github.com/danielga/garrysmod_common) directory")
 
