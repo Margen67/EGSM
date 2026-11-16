@@ -2,23 +2,22 @@ name: Build
 
 on:
   push:
-    branches: [ master, main ]
+    branches: [master, main]
   pull_request:
   workflow_dispatch:
 
 jobs:
   build:
-    name: ${{ matrix.name }}
-    runs-on: windows-latest
+    name: x86-64 (chromium, ${{ matrix.vsver }})
+    runs-on: ${{ matrix.runs-on }}
     strategy:
       fail-fast: false
       matrix:
         include:
-          - name: x86-64 (chromium)
-            gmcommon_ref: x86-64-support-sourcesdk
-            premake_args: --chromium=1
-            platform: x64
-            artifact: gmsv_egsm_chromium_win64
+          - vsver: vs2022
+            runs-on: windows-2022
+          - vsver: vs2026
+            runs-on: windows-latest
 
     steps:
       - name: Checkout EGSM
@@ -26,11 +25,11 @@ jobs:
         with:
           path: egsm
 
-      - name: Checkout garrysmod_common (${{ matrix.gmcommon_ref }})
+      - name: Checkout garrysmod_common
         uses: actions/checkout@main
         with:
           repository: danielga/garrysmod_common
-          ref: ${{ matrix.gmcommon_ref }}
+          ref: x86-64-support-sourcesdk
           submodules: recursive
           path: garrysmod_common
 
@@ -42,7 +41,7 @@ jobs:
 
       - name: Generate project files
         working-directory: egsm
-        run: premake5 vs2026 --gmcommon="${env:GITHUB_WORKSPACE}\garrysmod_common" ${{ matrix.premake_args }}
+        run: premake5 ${{ matrix.vsver }} --gmcommon="${env:GITHUB_WORKSPACE}\garrysmod_common" --chromium=1
 
       - name: Add MSBuild to PATH
         uses: microsoft/setup-msbuild@main
@@ -52,7 +51,7 @@ jobs:
         run: |-
           $sln = Get-ChildItem -Path projects -Recurse -Include *.slnx,*.sln | Select-Object -First 1
           if (-not $sln) { throw "premake did not generate a solution" }
-          msbuild $sln.FullName /m /p:Configuration=Release /p:Platform=${{ matrix.platform }}
+          msbuild $sln.FullName /m /p:Configuration=Release /p:Platform=x64
 
       - name: Collect DLL
         working-directory: egsm
@@ -72,6 +71,6 @@ jobs:
       - name: Upload artifact
         uses: actions/upload-artifact@main
         with:
-          name: ${{ matrix.artifact }}
+          name: gmsv_egsm_chromium_win64-${{ matrix.vsver }}
           path: egsm/dist/*.dll
           if-no-files-found: error
