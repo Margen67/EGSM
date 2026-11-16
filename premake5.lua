@@ -168,11 +168,8 @@ function CreateProject(config)
 			}
 		})
 
-		if abi_compatible then
-			local filepath = _GARRYSMOD_COMMON_DIRECTORY .. "/source/ABICompatibility.cpp"
-			files(filepath)
-			vpaths({["garrysmod_common"] = filepath})
-		end
+		-- source/ABICompatibility.cpp (part of this project) does the MSVC version check; the
+		-- garrysmod_common copy has an upper bound that lags behind new Visual Studio releases.
 
 		targetprefix("")
 		targetextension(".dll")
