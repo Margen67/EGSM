@@ -15,7 +15,7 @@ jobs:
       matrix:
         include:
           - name: x86-64 (chromium)
-            gmcommon_ref: x86-64-support-sourcesdk
+            gmcommon_ref: master
             premake_args: --chromium=1
             platform: x64
             artifact: gmsv_egsm_chromium_win64
@@ -33,12 +33,6 @@ jobs:
           ref: ${{ matrix.gmcommon_ref }}
           submodules: recursive
           path: garrysmod_common
-
-      - name: Allow vs2026 in garrysmod_common
-        run: |
-          $f = "garrysmod_common\premake\generator.lua"
-          (Get-Content $f -Raw) -replace '(?m)^(\s*)vs2022 = true,', "`$0`n`$1vs2026 = true," | Set-Content $f -NoNewline
-          Select-String -Path $f -Pattern "vs2026"
 
       - name: Install premake5
         run: |
