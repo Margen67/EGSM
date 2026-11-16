@@ -1,0 +1,80 @@
+name: Build
+
+on:
+  push:
+    branches: [ master, main ]
+  pull_request:
+  workflow_dispatch:
+
+jobs:
+  build:
+    name: ${{ matrix.name }}
+    runs-on: windows-2022
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - name: x86-64 (chromium)
+            gmcommon_ref: x86-64-support-sourcesdk
+            premake_args: --chromium=1
+            platform: x64
+            artifact: gmsv_egsm_chromium_win64
+          - name: x86 (main branch)
+            gmcommon_ref: master
+            premake_args: ""
+            platform: Win32
+            artifact: gmsv_egsm_win32
+
+    steps:
+      - name: Checkout EGSM
+        uses: actions/checkout@v4
+        with:
+          path: egsm
+
+      - name: Checkout garrysmod_common (${{ matrix.gmcommon_ref }})
+        uses: actions/checkout@v4
+        with:
+          repository: danielga/garrysmod_common
+          ref: ${{ matrix.gmcommon_ref }}
+          submodules: recursive
+          path: garrysmod_common
+
+      - name: Install premake5
+        shell: pwsh
+        run: |
+          Invoke-WebRequest -Uri "https://github.com/premake/premake-core/releases/download/v5.0.0-beta2/premake-5.0.0-beta2-windows.zip" -OutFile premake.zip
+          Expand-Archive premake.zip -DestinationPath "${env:RUNNER_TEMP}\premake"
+          "${env:RUNNER_TEMP}\premake" | Out-File -FilePath $env:GITHUB_PATH -Encoding utf8 -Append
+
+      - name: Generate project files
+        shell: pwsh
+        working-directory: egsm
+        run: premake5 vs2022 --gmcommon="${env:GITHUB_WORKSPACE}\garrysmod_common" ${{ matrix.premake_args }}
+
+      - name: Add MSBuild to PATH
+        uses: microsoft/setup-msbuild@v2
+
+      - name: Build
+        shell: pwsh
+        working-directory: egsm
+        run: |
+          $sln = Get-ChildItem -Path projects -Filter *.sln -Recurse | Select-Object -First 1
+          if (-not $sln) { throw "premake did not generate a solution" }
+          msbuild $sln.FullName /m /p:Configuration=Release /p:Platform=${{ matrix.platform }}
+
+      - name: Collect DLL
+        shell: pwsh
+        working-directory: egsm
+        run: |
+          New-Item -ItemType Directory -Force -Path dist | Out-Null
+          Get-ChildItem -Path projects -Filter *.dll -Recurse |
+            Where-Object { $_.FullName -match "release" } |
+            ForEach-Object { Copy-Item $_.FullName dist }
+          if (-not (Get-ChildItem dist -Filter *.dll)) { throw "no DLL was produced" }
+
+      - name: Upload artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: ${{ matrix.artifact }}
+          path: egsm/dist/*.dll
+          if-no-files-found: error

@@ -59,7 +59,7 @@ void* ScanSign(const void* handle, const char* sig, size_t len, const void* star
 		for (size_t i = 0; i < len; ++i)
 		{
 			if (sig[i] == ' ') { continue; }
-			if (sig[i] == '?') { tmp++; continue; }
+			if (sig[i] == '?') { tmp++; while (i + 1 < len && sig[i + 1] == '?') { i++; } continue; } // "?" and "??" both wildcard one byte
 
 			if (tmp[0] != strtoul(&sig[i], NULL, 16))
 			{
