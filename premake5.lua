@@ -222,10 +222,9 @@ CreateWorkspace({name = (_OPTIONS.chromium and "egsm_chromium" or "egsm"), abi_c
     IncludeSDKTier1()
     --IncludeSDKTier2()
     --IncludeSDKTier3()
-	defines 
-	{
-		_OPTIONS.chromium and "CHROMIUM" or "",
-	}
+	if _OPTIONS.chromium then
+		defines({"CHROMIUM"})
+	end
 	files
 	{
 		"source/**.cpp",
