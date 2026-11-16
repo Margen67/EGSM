@@ -63,6 +63,13 @@ jobs:
             ForEach-Object { Copy-Item $_.FullName dist }
           if (-not (Get-ChildItem dist -Filter *.dll)) { throw "no DLL was produced" }
 
+      - name: Show imports
+        shell: pwsh
+        working-directory: egsm
+        run: |
+          $dumpbin = & "${env:ProgramFiles(x86)}\Microsoft Visual Studio\Installer\vswhere.exe" -latest -find "VC\Tools\MSVC\**\bin\Hostx64\x64\dumpbin.exe" | Select-Object -First 1
+          Get-ChildItem dist -Filter *.dll | ForEach-Object { & $dumpbin /nologo /imports $_.FullName }
+
       - name: Upload artifact
         uses: actions/upload-artifact@main
         with:

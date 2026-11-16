@@ -43,7 +43,7 @@ bool GetLibraryInfo(const void* handle, DynLibInfo& lib)
 	return true;
 }
 
-void* ScanSign(const void* handle, const char* sig, size_t len, const void* start)
+static void* ScanSignOne(const void* handle, const char* sig, size_t len, const void* start)
 {
 	DynLibInfo lib;
 	memset(&lib, 0, sizeof(DynLibInfo));
@@ -77,5 +77,25 @@ void* ScanSign(const void* handle, const char* sig, size_t len, const void* star
 		found = true;
 	}
 
+	return nullptr;
+}
+
+// Signatures may list alternatives separated by '|' (e.g. one per game build); the first one that matches wins.
+void* ScanSign(const void* handle, const char* sig, size_t len, const void* start)
+{
+	size_t begin = 0;
+	for (size_t i = 0; i <= len; ++i)
+	{
+		if (i == len || sig[i] == '|')
+		{
+			if (i > begin)
+			{
+				void* found = ScanSignOne(handle, sig + begin, i - begin, start);
+				if (found)
+					return found;
+			}
+			begin = i + 1;
+		}
+	}
 	return nullptr;
 }
