@@ -19,11 +19,6 @@ jobs:
             premake_args: --chromium=1
             platform: x64
             artifact: gmsv_egsm_chromium_win64
-          - name: x86 (main branch)
-            gmcommon_ref: master
-            premake_args: ""
-            platform: Win32
-            artifact: gmsv_egsm_win32
 
     steps:
       - name: Checkout EGSM
