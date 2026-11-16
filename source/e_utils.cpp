@@ -99,3 +99,23 @@ void* ScanSign(const void* handle, const char* sig, size_t len, const void* star
 	}
 	return nullptr;
 }
+
+bool LoadModuleInterface(const char* module, const char* version, void*, void** out)
+{
+	char name[260];
+	snprintf(name, sizeof(name), "%s.dll", module);
+
+	HMODULE handle = GetModuleHandleA(name);
+	if (!handle)
+		handle = LoadLibraryA(name);
+	if (!handle)
+		return false;
+
+	typedef void* (*CreateInterfaceFn)(const char*, int*);
+	CreateInterfaceFn create = reinterpret_cast<CreateInterfaceFn>(GetProcAddress(handle, "CreateInterface"));
+	if (!create)
+		return false;
+
+	*out = create(version, nullptr);
+	return *out != nullptr;
+}

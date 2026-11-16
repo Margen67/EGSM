@@ -10,6 +10,10 @@ struct DynLibInfo
 };
 
 bool GetLibraryInfo(const void* handle, DynLibInfo& lib);
+// Replacement for the SDK's Sys_LoadInterface: asks an already loaded (or loadable) module's
+// CreateInterface export for an interface. The SDK version drags in tier0 imports that newer
+// builds of the game do not export (CommandLine, StackToolsNotify_LoadedLibrary).
+bool LoadModuleInterface(const char* module, const char* version, void* unused, void** out);
 void* ScanSign(const void* handle, const char* sig, size_t len, const void* start = NULL);
 
 #define GetVTable(ptr) ((void***)ptr)[0]
