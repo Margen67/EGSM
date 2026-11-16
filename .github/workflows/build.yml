@@ -15,7 +15,7 @@ jobs:
       matrix:
         include:
           - name: x86-64 (chromium)
-            gmcommon_ref: master
+            gmcommon_ref: x86-64-support-sourcesdk
             premake_args: --chromium=1
             platform: x64
             artifact: gmsv_egsm_chromium_win64
