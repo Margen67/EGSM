@@ -50,7 +50,7 @@ jobs:
       - name: Build
         working-directory: egsm
         run: |
-          $sln = Get-ChildItem -Path projects -Filter *.sln -Recurse | Select-Object -First 1
+          $sln = Get-ChildItem -Path projects -Recurse -Include *.slnx,*.sln | Select-Object -First 1
           if (-not $sln) { throw "premake did not generate a solution" }
           msbuild $sln.FullName /m /p:Configuration=Release /p:Platform=${{ matrix.platform }}
 
